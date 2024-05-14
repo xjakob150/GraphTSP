@@ -3,7 +3,7 @@ import sys
 import math
 from button import Button
 import itertools
-from algoritmi import brute_force_tsp, Permutations_tsp, total_distance, nearest_neighbor_tsp, Dinamicni
+from algoritmi import brute_force_tsp, Permutations_tsp, total_distance, nearest_neighbor_tsp, Dinamicni, branch_and_bound_tsp
 from result import show_results, show_results_window
 
 # Define colors
@@ -43,10 +43,13 @@ edges = [
     ("Munich", "Dunaj", 403)
 ]
 
-AllPermsButton = Button("All permutations", (575, 100), (200, 50), GRAY, BLUE)
-BruteForceButton = Button("Brute force", (600, 200), (150, 50), GRAY, BLUE)
-NearestNeighbourButton = Button("Nearest Neighbour", (575, 300), (200, 50), GRAY, BLUE)
-DinamicniButton = Button("Held-Karpov algoritem", (550, 400), (250, 50), GRAY, BLUE)
+AllPermsButton = Button("All permutations", (500, 50), (200, 50), GRAY, BLUE)
+BruteForceButton = Button("Brute force", (525, 150), (150, 50), GRAY, BLUE)
+NearestNeighbourButton = Button("Nearest Neighbour", (500, 250), (200, 50), GRAY, BLUE)
+DinamicniButton = Button("Held-Karpov algoritem", (475, 350), (250, 50), GRAY, BLUE)
+BranchAndBoundButton = Button("Branch and bound", (475, 450), (250, 50), GRAY, BLUE)
+
+
 
 default_cursor = pygame.cursors.arrow
 hover_cursor = pygame.cursors.tri_left
@@ -82,6 +85,12 @@ while running:
                 print("Shortest distance:", shortest_distance)
                 print("________________________________________")
                 show_results("Held-Karpov TSP Result", shortest_path, shortest_distance)
+            elif BranchAndBoundButton.is_hovered():
+                shortest_path, shortest_distance = branch_and_bound_tsp(nodes, edges)
+                print("Shortest path Branch and bound:", shortest_path)
+                print("Shortest distance:", shortest_distance)
+                print("________________________________________")
+                show_results("Branch and bound TSP Result", shortest_path, shortest_distance)
 
     screen.fill(WHITE)
 
@@ -105,8 +114,9 @@ while running:
     NearestNeighbourButton.draw(screen)
     AllPermsButton.draw(screen)
     DinamicniButton.draw(screen)
+    BranchAndBoundButton.draw(screen)
 
-    if BruteForceButton.is_hovered() or AllPermsButton.is_hovered() or NearestNeighbourButton.is_hovered():
+    if BruteForceButton.is_hovered() or AllPermsButton.is_hovered() or NearestNeighbourButton.is_hovered() or DinamicniButton.is_hovered():
         pygame.mouse.set_cursor(*hover_cursor)
     else:
         pygame.mouse.set_cursor(*default_cursor)

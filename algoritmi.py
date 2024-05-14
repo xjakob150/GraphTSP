@@ -1,6 +1,7 @@
 from itertools import permutations
 import itertools
 from functools import lru_cache
+import heapq
 
 nodes = {
     "Munich": (300, 400),
@@ -127,3 +128,71 @@ def get_edge_distance(start, end, edges):
         if edge[0] == start and edge[1] == end:
             return edge[2]
     return float('inf')  # if no direct edge exists
+
+
+def branch_and_bound_tsp(nodes, edges):
+    n = len(nodes)
+    node_list = list(nodes.keys())
+    all_distances = [[float('inf')] * n for _ in range(n)]
+
+    # Fill the distance matrix
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                all_distances[i][j] = get_edge_distance(node_list[i], node_list[j], edges)
+
+    # Priority queue to store the live nodes of the search tree
+    pq = []
+
+    # Initial lower bound for the root node
+    def calculate_initial_bound():
+        bound = 0
+        for i in range(n):
+            min1, min2 = float('inf'), float('inf')
+            for j in range(n):
+                if i != j:
+                    if all_distances[i][j] <= min1:
+                        min2 = min1
+                        min1 = all_distances[i][j]
+                    elif all_distances[i][j] < min2:
+                        min2 = all_distances[i][j]
+            bound += (min1 + min2)
+        return bound / 2
+
+    def calculate_bound(path, level):
+        bound = calculate_initial_bound()
+        if level == 1:
+            return bound
+
+        for i in range(level - 1):
+            bound -= (min([all_distances[path[i]][j] for j in range(n) if j not in path[:i + 1]]) +
+                      min([all_distances[path[i + 1]][j] for j in range(n) if j not in path[:i + 2]])) / 2
+        return bound
+
+    initial_bound = calculate_initial_bound()
+
+    # Priority queue element: (bound, cost, level, path)
+    heapq.heappush(pq, (initial_bound, 0, 1, [0]))
+
+    final_path = None
+    min_cost = float('inf')
+
+    while pq:
+        bound, cost, level, path = heapq.heappop(pq)
+
+        if bound < min_cost:
+            for i in range(n):
+                if i not in path:
+                    new_path = path + [i]
+                    new_cost = cost + all_distances[path[-1]][i]
+                    if level == n - 1:
+                        new_cost += all_distances[i][0]
+                        if new_cost < min_cost:
+                            min_cost = new_cost
+                            final_path = new_path + [0]
+                    else:
+                        new_bound = calculate_bound(new_path, level + 1)
+                        if new_bound < min_cost:
+                            heapq.heappush(pq, (new_bound, new_cost, level + 1, new_path))
+
+    return [node_list[i] for i in final_path], min_cost
